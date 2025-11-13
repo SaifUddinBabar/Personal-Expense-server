@@ -16,6 +16,11 @@ const client = new MongoClient(uri, {
 async function connectDB() {
   try {
     await client.connect();
+    const database = client.db("expenseDB");
+const transactions = database.collection("data");
+
+
+
     console.log("✅ MongoDB connected successfully");
   } catch (error) {
     console.error("❌ MongoDB connection failed:", error);
