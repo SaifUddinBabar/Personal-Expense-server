@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const app = express();
 const port = 4000;
@@ -7,8 +8,21 @@ const port = 4000;
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('Server is running...');
+const uri = "mongodb+srv://expenseDB:aUtKioGKKgc5oqA9@cluster0.ifyaigl.mongodb.net/?appName=Cluster0";
+const client = new MongoClient(uri, {
+  serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true }
 });
 
+async function connectDB() {
+  try {
+    await client.connect();
+    console.log("✅ MongoDB connected successfully");
+  } catch (error) {
+    console.error("❌ MongoDB connection failed:", error);
+  }
+}
+
+connectDB();
+
+app.get('/', (req, res) => res.send('MongoDB connection active'));
 app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
