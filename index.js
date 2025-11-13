@@ -19,6 +19,19 @@ async function connectDB() {
     const database = client.db("expenseDB");
 const transactions = database.collection("data");
 
+app.post('/data', async (req, res) => {
+  try {
+    const database = client.db("expenseDB");
+    const transactions = database.collection("data");
+    const result = await transactions.insertOne(req.body);
+    res.send(result);
+  } catch (err) {
+    res.status(500).send({ message: 'Failed to insert data' });
+  }
+});
+
+
+
 
 
     console.log("✅ MongoDB connected successfully");
