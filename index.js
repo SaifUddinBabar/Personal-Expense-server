@@ -41,6 +41,18 @@ app.get('/data', async (req, res) => {
   }
 });
 
+const { ObjectId } = require('mongodb');
+
+app.delete('/data/:id', async (req, res) => {
+  try {
+    const database = client.db("expenseDB");
+    const transactions = database.collection("data");
+    const result = await transactions.deleteOne({ _id: new ObjectId(req.params.id) });
+    res.send(result);
+  } catch (err) {
+    res.status(500).send({ message: 'Failed to delete data' });
+  }
+});
 
 
 
