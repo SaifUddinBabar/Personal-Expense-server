@@ -1,82 +1,83 @@
 const express = require('express');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const app = express();
-const port = 4000;
+const port = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
 
 const uri = "mongodb+srv://expenseDB:aUtKioGKKgc5oqA9@cluster0.ifyaigl.mongodb.net/?appName=Cluster0";
 const client = new MongoClient(uri, {
-  serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true }
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
 });
 
-async function connectDB() {
+async function run() {
   try {
     await client.connect();
     const database = client.db("expenseDB");
-const transactions = database.collection("data");
+    const usersCollection = database.collection("data");
 
-app.post('/data', async (req, res) => {
-  try {
-    const database = client.db("expenseDB");
-    const transactions = database.collection("data");
-    const result = await transactions.insertOne(req.body);
-    res.send(result);
-  } catch (err) {
-    res.status(500).send({ message: 'Failed to insert data' });
-  }
-});
+    app.get('/', (req, res) => {
+      res.send('Server is running...');
+    });
 
-app.get('/data', async (req, res) => {
-  try {
-    const database = client.db("expenseDB");
-    const transactions = database.collection("data");
-    const data = await transactions.find().toArray();
-    res.send(data);
-  } catch (err) {
-    res.status(500).send({ message: 'Failed to fetch data' });
-  }
-});
+    // ✅ Add
+    app.post('/data', async (req, res) => {
+      const result = await usersCollection.insertOne(req.body);
+      res.send(result);
+    });
 
-const { ObjectId } = require('mongodb');
+    // ✅ Get All
+    app.get('/data', async (req, res) => {
+      const transactions = await usersCollection.find().toArray();
+      res.send(transactions);
+    });
 
-app.delete('/data/:id', async (req, res) => {
-  try {
-    const database = client.db("expenseDB");
-    const transactions = database.collection("data");
-    const result = await transactions.deleteOne({ _id: new ObjectId(req.params.id) });
-    res.send(result);
-  } catch (err) {
-    res.status(500).send({ message: 'Failed to delete data' });
-  }
-});
+    // ✅ Delete
+    app.delete("/data/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
+      result.deletedCount === 1
+        ? res.send({ message: "Deleted successfully" })
+        : res.status(404).send({ message: "Not found" });
+    });
 
-app.put('/data/:id', async (req, res) => {
-  try {
-    const database = client.db("expenseDB");
-    const transactions = database.collection("data");
-    const filter = { _id: new ObjectId(req.params.id) };
-    const updateDoc = { $set: req.body };
-    const result = await transactions.updateOne(filter, updateDoc);
-    res.send(result);
-  } catch (err) {
-    res.status(500).send({ message: 'Failed to update data' });
-  }
-});
+    // ✅ Update
+    app.put("/data/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const updated = req.body;
+        const filter = { _id: new ObjectId(id) };
 
+        const updateDoc = {
+          $set: {
+            type: updated.type,
+            description: updated.description,
+            category: updated.category,
+            amount: updated.amount,
+            date: updated.date,
+          },
+        };
 
+        const result = await usersCollection.updateOne(filter, updateDoc);
+        const updatedDoc = await usersCollection.findOne(filter);
 
+        res.send({ message: "Updated successfully", data: updatedDoc });
+      } catch (err) {
+        res.status(500).send({ message: "Update failed", error: err });
+      }
+    });
 
-    console.log("✅ MongoDB connected successfully");
-  } catch (error) {
-    console.error("❌ MongoDB connection failed:", error);
-  }
+    console.log("✅ MongoDB Connected");
+  } finally {}
 }
 
-connectDB();
+run().catch(console.dir);
 
-app.get('/', (req, res) => res.send('MongoDB connection active'));
 app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
