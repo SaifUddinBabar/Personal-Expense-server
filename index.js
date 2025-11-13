@@ -27,34 +27,35 @@ async function run() {
       res.send('Server is running...');
     });
 
-    // ✅ Add
     app.post('/data', async (req, res) => {
-      const result = await usersCollection.insertOne(req.body);
+      const transaction = { ...req.body, createdAt: new Date() };
+      const result = await usersCollection.insertOne(transaction);
       res.send(result);
     });
 
-    // ✅ Get All
     app.get('/data', async (req, res) => {
-      const transactions = await usersCollection.find().toArray();
+      const email = req.query.email;
+      const query = email ? { userEmail: email } : {};
+      const transactions = await usersCollection.find(query).sort({ createdAt: -1 }).toArray();
       res.send(transactions);
     });
 
-    // ✅ Delete
-    app.delete("/data/:id", async (req, res) => {
-      const id = req.params.id;
-      const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
-      result.deletedCount === 1
-        ? res.send({ message: "Deleted successfully" })
-        : res.status(404).send({ message: "Not found" });
+    app.get('/transaction/:id', async (req, res) => {
+      try {
+        const id = req.params.id;
+        const transaction = await usersCollection.findOne({ _id: new ObjectId(id) });
+        if (!transaction) return res.status(404).send({ message: "Transaction not found" });
+        res.send(transaction);
+      } catch (err) {
+        res.status(500).send({ message: "Error fetching transaction", error: err });
+      }
     });
 
-    // ✅ Update
-    app.put("/data/:id", async (req, res) => {
+    app.put('/transaction/update/:id', async (req, res) => {
       try {
         const id = req.params.id;
         const updated = req.body;
         const filter = { _id: new ObjectId(id) };
-
         const updateDoc = {
           $set: {
             type: updated.type,
@@ -64,14 +65,20 @@ async function run() {
             date: updated.date,
           },
         };
-
-        const result = await usersCollection.updateOne(filter, updateDoc);
+        await usersCollection.updateOne(filter, updateDoc);
         const updatedDoc = await usersCollection.findOne(filter);
-
         res.send({ message: "Updated successfully", data: updatedDoc });
       } catch (err) {
         res.status(500).send({ message: "Update failed", error: err });
       }
+    });
+
+    app.delete("/data/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
+      result.deletedCount === 1
+        ? res.send({ message: "Deleted successfully" })
+        : res.status(404).send({ message: "Not found" });
     });
 
     console.log("✅ MongoDB Connected");
