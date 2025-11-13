@@ -54,6 +54,20 @@ app.delete('/data/:id', async (req, res) => {
   }
 });
 
+app.put('/data/:id', async (req, res) => {
+  try {
+    const database = client.db("expenseDB");
+    const transactions = database.collection("data");
+    const filter = { _id: new ObjectId(req.params.id) };
+    const updateDoc = { $set: req.body };
+    const result = await transactions.updateOne(filter, updateDoc);
+    res.send(result);
+  } catch (err) {
+    res.status(500).send({ message: 'Failed to update data' });
+  }
+});
+
+
 
 
     console.log("✅ MongoDB connected successfully");
