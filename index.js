@@ -30,6 +30,16 @@ app.post('/data', async (req, res) => {
   }
 });
 
+app.get('/data', async (req, res) => {
+  try {
+    const database = client.db("expenseDB");
+    const transactions = database.collection("data");
+    const data = await transactions.find().toArray();
+    res.send(data);
+  } catch (err) {
+    res.status(500).send({ message: 'Failed to fetch data' });
+  }
+});
 
 
 
