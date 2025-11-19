@@ -6,8 +6,8 @@ import "dotenv/config";
 
 const app = express();
 
-// CORS
-app.use(cors({ origin: "*" }));
+// Middleware
+app.use(cors());
 app.use(express.json());
 
 // MongoDB setup
@@ -26,7 +26,7 @@ async function run() {
       res.send("🚀 Expense Tracker Server is Running...");
     });
 
-    // Get all transactions (optionally filter by email)
+    // Get all transactions
     app.get("/data", async (req, res) => {
       try {
         const email = req.query.email;
@@ -69,10 +69,12 @@ async function run() {
       try {
         const id = req.params.id;
         const updated = req.body;
+
         await collection.updateOne(
           { _id: new ObjectId(id) },
           { $set: updated }
         );
+
         const updatedDoc = await collection.findOne({ _id: new ObjectId(id) });
         res.send({ message: "Updated", data: updatedDoc });
       } catch (err) {
@@ -98,13 +100,13 @@ async function run() {
 
 run();
 
-// // Local server (optional, only for local dev)
-// if (process.env.VERCEL !== "1") {
-//   const port = process.env.PORT || 4000;
-//   app.listen(port, () =>
-//     console.log(`🚀 Local server running at http://localhost:${port}`)
-//   );
-// }
+// Local dev only
+if (process.env.VERCEL !== "1") {
+  const port = process.env.PORT || 4000;
+  app.listen(port, () =>
+    console.log(`🚀 Local server running at http://localhost:${port}`)
+  );
+}
 
-// Vercel serverless compatible
+// Export for Vercel
 export default app;
