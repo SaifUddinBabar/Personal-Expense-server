@@ -6,19 +6,11 @@ import "dotenv/config";
 
 const app = express();
 
-// CORS allowed for both local + vercel
-app.use(
-  cors({
-    origin: "*",
-  })
-);
-
+// CORS
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
-// PORT handling (local only)
-const port = process.env.PORT || 4000;
-
-// MongoDB connection
+// MongoDB setup
 const client = new MongoClient(process.env.MONGO_URI);
 
 async function run() {
@@ -34,7 +26,7 @@ async function run() {
       res.send("🚀 Expense Tracker Server is Running...");
     });
 
-    // Get all + filter by email
+    // Get all transactions
     app.get("/data", async (req, res) => {
       try {
         const email = req.query.email;
@@ -43,14 +35,13 @@ async function run() {
           .find(query)
           .sort({ createdAt: -1 })
           .toArray();
-
         res.send(transactions);
       } catch (err) {
         res.status(500).send({ message: "Fetch failed", error: err.message });
       }
     });
 
-    // Add new Transaction
+    // Add transaction
     app.post("/data", async (req, res) => {
       try {
         const transaction = { ...req.body, createdAt: new Date() };
@@ -61,63 +52,40 @@ async function run() {
       }
     });
 
-    // Get one
+    // Get single
     app.get("/data/:id", async (req, res) => {
       try {
         const id = req.params.id;
-        const transaction = await collection.findOne({
-          _id: new ObjectId(id),
-        });
-
-        if (!transaction)
-          return res.status(404).send({ message: "Not Found" });
-
+        const transaction = await collection.findOne({ _id: new ObjectId(id) });
+        if (!transaction) return res.status(404).send({ message: "Not Found" });
         res.send(transaction);
       } catch (err) {
         res.status(500).send({ message: "Fetch failed", error: err.message });
       }
     });
 
-    // Update one
+    // Update
     app.put("/data/:id", async (req, res) => {
       try {
         const id = req.params.id;
         const updated = req.body;
-
         await collection.updateOne(
           { _id: new ObjectId(id) },
-          {
-            $set: {
-              type: updated.type,
-              category: updated.category,
-              amount: updated.amount,
-              description: updated.description,
-              createdAt: updated.createdAt,
-            },
-          }
+          { $set: updated }
         );
-
-        const updatedDoc = await collection.findOne({
-          _id: new ObjectId(id),
-        });
-
+        const updatedDoc = await collection.findOne({ _id: new ObjectId(id) });
         res.send({ message: "Updated", data: updatedDoc });
       } catch (err) {
         res.status(500).send({ message: "Update failed", error: err.message });
       }
     });
 
-    // Delete one
+    // Delete
     app.delete("/data/:id", async (req, res) => {
       try {
         const id = req.params.id;
-        const result = await collection.deleteOne({
-          _id: new ObjectId(id),
-        });
-
-        if (result.deletedCount === 1)
-          return res.send({ message: "Deleted" });
-
+        const result = await collection.deleteOne({ _id: new ObjectId(id) });
+        if (result.deletedCount === 1) return res.send({ message: "Deleted" });
         res.status(404).send({ message: "Not found" });
       } catch (err) {
         res.status(500).send({ message: "Delete failed", error: err.message });
@@ -130,10 +98,11 @@ async function run() {
 
 run();
 
-// ✅ Local server only (Vercel ignores this)
+// Local server (optional, only for local dev)
 if (process.env.VERCEL !== "1") {
+  const port = process.env.PORT || 4000;
   app.listen(port, () =>
-    console.log(`🚀 Local Server running at http://localhost:${port}`)
+    console.log(`🚀 Local server running at http://localhost:${port}`)
   );
 }
 
