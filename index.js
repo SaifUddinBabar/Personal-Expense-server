@@ -15,7 +15,7 @@ app.use(
 
 app.use(express.json());
 
-// PORT handling
+// PORT handling (local only)
 const port = process.env.PORT || 4000;
 
 // MongoDB connection
@@ -130,7 +130,12 @@ async function run() {
 
 run();
 
-// Start server (only works locally — Vercel ignores this)
-app.listen(port, () =>
-  console.log(`🚀 Local Server running at http://localhost:${port}`)
-);
+// ✅ Local server only (Vercel ignores this)
+if (process.env.VERCEL !== "1") {
+  app.listen(port, () =>
+    console.log(`🚀 Local Server running at http://localhost:${port}`)
+  );
+}
+
+// ✅ Vercel compatible
+export default app;
