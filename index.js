@@ -26,17 +26,26 @@ async function run() {
       res.send("🚀 Expense Tracker Server is Running...");
     });
 
-    // Get all transactions
+    // 🌟 ফিক্সড: কেস-সেনসিটিভিটি সমস্যার সমাধান
     app.get("/data", async (req, res) => {
       try {
         const email = req.query.email;
-        const query = email ? { userEmail: email } : {};
+        
+        // 🚨 ফিক্স: ইনকামিং ইমেলটিকে ছোট হাতের অক্ষরে পরিবর্তন করা হলো
+        const lowercaseEmail = email ? email.toLowerCase() : null; 
+        
+        // query অবজেক্টে lowercaseEmail ব্যবহার করা হচ্ছে
+        const query = lowercaseEmail ? { userEmail: lowercaseEmail } : {};
+        
+        // console.log("Searching with query:", query); // ডিবাগিং এর জন্য রাখতে পারেন
+        
         const transactions = await collection
           .find(query)
           .sort({ createdAt: -1 })
           .toArray();
         res.send(transactions);
       } catch (err) {
+        console.error("Fetch failed:", err);
         res.status(500).send({ message: "Fetch failed", error: err.message });
       }
     });
@@ -44,6 +53,7 @@ async function run() {
     // Add transaction
     app.post("/data", async (req, res) => {
       try {
+        // 💡 পরামর্শ: এখানেও userEmail কে lowercase করে সেভ করা উচিত
         const transaction = { ...req.body, createdAt: new Date() };
         const result = await collection.insertOne(transaction);
         res.status(201).send({ message: "Transaction added", data: result });
