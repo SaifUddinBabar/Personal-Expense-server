@@ -1,4 +1,4 @@
-// server.js
+// index.js
 import express from "express";
 import cors from "cors";
 import { MongoClient, ObjectId } from "mongodb";
@@ -26,7 +26,7 @@ async function run() {
       res.send("🚀 Expense Tracker Server is Running...");
     });
 
-    // Get all transactions
+    // Get all transactions (optionally filter by email)
     app.get("/data", async (req, res) => {
       try {
         const email = req.query.email;
@@ -52,7 +52,7 @@ async function run() {
       }
     });
 
-    // Get single
+    // Get single transaction
     app.get("/data/:id", async (req, res) => {
       try {
         const id = req.params.id;
@@ -64,7 +64,7 @@ async function run() {
       }
     });
 
-    // Update
+    // Update transaction
     app.put("/data/:id", async (req, res) => {
       try {
         const id = req.params.id;
@@ -80,7 +80,7 @@ async function run() {
       }
     });
 
-    // Delete
+    // Delete transaction
     app.delete("/data/:id", async (req, res) => {
       try {
         const id = req.params.id;
@@ -106,5 +106,5 @@ if (process.env.VERCEL !== "1") {
   );
 }
 
-// ✅ Vercel compatible
+// Vercel serverless compatible
 export default app;
