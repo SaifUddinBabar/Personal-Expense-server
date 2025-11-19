@@ -69,12 +69,10 @@ async function run() {
       try {
         const id = req.params.id;
         const updated = req.body;
-
         await collection.updateOne(
           { _id: new ObjectId(id) },
           { $set: updated }
         );
-
         const updatedDoc = await collection.findOne({ _id: new ObjectId(id) });
         res.send({ message: "Updated", data: updatedDoc });
       } catch (err) {
@@ -93,6 +91,7 @@ async function run() {
         res.status(500).send({ message: "Delete failed", error: err.message });
       }
     });
+
   } catch (err) {
     console.error("MongoDB connection failed:", err.message);
   }
@@ -100,13 +99,8 @@ async function run() {
 
 run();
 
-// Local dev only
-if (process.env.VERCEL !== "1") {
-  const port = process.env.PORT || 4000;
-  app.listen(port, () =>
-    console.log(`🚀 Local server running at http://localhost:${port}`)
-  );
-}
-
-// Export for Vercel
-export default app;
+// Railway auto assigns PORT
+const port = process.env.PORT || 4000;
+app.listen(port, () =>
+  console.log(`🚀 Server running at http://localhost:${port}`)
+);
