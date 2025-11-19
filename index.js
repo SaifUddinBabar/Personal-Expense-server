@@ -98,13 +98,13 @@ async function run() {
 
 run();
 
-// Local server (optional, only for local dev)
-if (process.env.VERCEL !== "1") {
-  const port = process.env.PORT || 4000;
-  app.listen(port, () =>
-    console.log(`🚀 Local server running at http://localhost:${port}`)
-  );
-}
+// // Local server (optional, only for local dev)
+// if (process.env.VERCEL !== "1") {
+//   const port = process.env.PORT || 4000;
+//   app.listen(port, () =>
+//     console.log(`🚀 Local server running at http://localhost:${port}`)
+//   );
+// }
 
 // Vercel serverless compatible
 export default app;
