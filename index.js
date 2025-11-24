@@ -1,4 +1,3 @@
-// index.js
 import express from "express";
 import cors from "cors";
 import { MongoClient, ObjectId } from "mongodb";
@@ -6,11 +5,9 @@ import "dotenv/config";
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// MongoDB setup
 const client = new MongoClient(process.env.MONGO_URI);
 
 async function run() {
@@ -21,12 +18,10 @@ async function run() {
     const db = client.db(process.env.DB_NAME);
     const collection = db.collection(process.env.COLLECTION_NAME);
 
-    // Root route
     app.get("/", (req, res) => {
       res.send("🚀 Expense Tracker Server is Running...");
     });
 
-    // Get all transactions
     app.get("/data", async (req, res) => {
       try {
         const email = req.query.email;
@@ -41,7 +36,6 @@ async function run() {
       }
     });
 
-    // Add transaction
     app.post("/data", async (req, res) => {
       try {
         const transaction = { ...req.body, createdAt: new Date() };
@@ -52,7 +46,6 @@ async function run() {
       }
     });
 
-    // Get single transaction
     app.get("/data/:id", async (req, res) => {
       try {
         const id = req.params.id;
@@ -64,7 +57,6 @@ async function run() {
       }
     });
 
-    // Update transaction
     app.put("/data/:id", async (req, res) => {
       try {
         const id = req.params.id;
@@ -80,7 +72,6 @@ async function run() {
       }
     });
 
-    // Delete transaction
     app.delete("/data/:id", async (req, res) => {
       try {
         const id = req.params.id;
@@ -99,7 +90,6 @@ async function run() {
 
 run();
 
-// Railway auto assigns PORT
 const port = process.env.PORT || 4000;
 app.listen(port, () =>
   console.log(`🚀 Server running at http://localhost:${port}`)
